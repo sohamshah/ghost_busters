@@ -101,10 +101,14 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        cumulative = 0 #max value is 1
+        total = self.total()
+        r = random.uniform(0, total)
+        soFar = 0
+        for item, prob in self.items():
+            if soFar + prob > r:
+                return item
+            soFar += prob
         
-
-
 class InferenceModule:
     """
     An inference module tracks a belief distribution over a ghost's location.
