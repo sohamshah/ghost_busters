@@ -76,8 +76,9 @@ class DiscreteDistribution(dict):
         """
         "*** YOUR CODE HERE ***"
         total = self.total()
-        for key, val in self.items():
-            self[key] = val/total
+        if total:
+            for key, val in self.items():
+                self[key] = val/total
 
     def sample(self):
         """
@@ -291,7 +292,16 @@ class ExactInference(InferenceModule):
         current position. However, this is not a problem, as Pacman's current
         position is known.
         """
-        "*** YOUR CODE HERE ***"
+        pacPos = gameState.getPacmanPosition()
+        jailPos = self.getJailPosition()
+        beliefs = self.beliefs
+        allGhostPositions = self.allPositions
+
+        for pos in allGhostPositions:
+            likelihood = self.getObservationProb(observation, pacPos, pos, jailPos)
+            prior = beliefs[pos]
+            beliefs[pos] = likelihood * prior
+        beliefs.normalize()
 
     def predict(self, gameState):
         """
