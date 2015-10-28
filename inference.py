@@ -359,7 +359,26 @@ class ParticleFilter(InferenceModule):
         The observation is the estimated Manhattan distance to the ghost you are
         tracking.
         """
-        "*** YOUR CODE HERE ***"
+        pacPos = gameState.getPacmanPosition()
+        jailPos = self.getJailPosition()
+        particles = self.particles
+        allGhostPositions = self.legalPositions
+        beliefs = self.getBeliefDistribution()
+
+        for position in allGhostPositions:
+            likelihood = self.getObservationProb(observation, pacPos, position, jailPos)
+            prior = beliefs[position]
+            beliefs[position] = likelihood * prior
+
+        if beliefs.total() == 0:
+            self.initializeUniformly(gameState)
+            beliefs = self.getBeliefDistribution()
+            particles = self.particles
+
+        self.particles = []
+        for i in range(self.numParticles):
+            self.particles.append(beliefs.sample())
+
 
     def predict(self, gameState):
         """
