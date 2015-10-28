@@ -312,7 +312,17 @@ class ExactInference(InferenceModule):
         Pacman's current position. However, this is not a problem, as Pacman's
         current position is known.
         """
-        "*** YOUR CODE HERE ***"
+        pacPos = gameState.getPacmanPosition()
+        beliefs = self.beliefs
+        allGhostPositions = self.allPositions
+        jailPos = self.getJailPosition()
+
+        for oldPos in allGhostPositions:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            prior = beliefs[oldPos]
+            for newPos, likelihood in newPosDist:
+                beliefs[newPos] = beliefs[newPos] * likelihood * prior
+        beliefs.normalize()
 
     def getBeliefDistribution(self):
         return self.beliefs
