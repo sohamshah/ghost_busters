@@ -317,12 +317,12 @@ class ExactInference(InferenceModule):
         allGhostPositions = self.allPositions
         jailPos = self.getJailPosition()
 
+        new = DiscreteDistribution()
         for oldPos in allGhostPositions:
             newPosDist = self.getPositionDistribution(gameState, oldPos)
-            prior = beliefs[oldPos]
-            for newPos, likelihood in newPosDist:
-                beliefs[newPos] = beliefs[newPos] * likelihood * prior
-        beliefs.normalize()
+            for newPos, likelihood in newPosDist.items():
+                new[newPos] += beliefs[oldPos] * likelihood
+        self.beliefs = new
 
     def getBeliefDistribution(self):
         return self.beliefs
