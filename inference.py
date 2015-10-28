@@ -315,7 +315,6 @@ class ExactInference(InferenceModule):
         pacPos = gameState.getPacmanPosition()
         beliefs = self.beliefs
         allGhostPositions = self.allPositions
-        jailPos = self.getJailPosition()
 
         new = DiscreteDistribution()
         for oldPos in allGhostPositions:
@@ -385,7 +384,21 @@ class ParticleFilter(InferenceModule):
         Sample each particle's next state based on its current state and the
         gameState.
         """
-        "*** YOUR CODE HERE ***"
+        pacPos = gameState.getPacmanPosition()
+        allGhostPositions = self.legalPositions
+        beliefs = self.getBeliefDistribution()
+
+        new = DiscreteDistribution()
+
+        for oldPos in allGhostPositions:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            for newPos, likelihood in newPosDist.items():
+                new[newPos] += beliefs[oldPos] * likelihood
+
+        self.particles = []
+        for i in range(self.numParticles):
+            self.particles.append(new.sample())
+
 
     def getBeliefDistribution(self):
         """
