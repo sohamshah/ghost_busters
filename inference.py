@@ -109,7 +109,7 @@ class DiscreteDistribution(dict):
             if soFar + prob > r:
                 return item
             soFar += prob
-        
+
 class InferenceModule:
     """
     An inference module tracks a belief distribution over a ghost's location.
@@ -362,21 +362,21 @@ class ParticleFilter(InferenceModule):
         jailPos = self.getJailPosition()
         particles = self.particles
         allGhostPositions = self.legalPositions
-        beliefs = self.getBeliefDistribution()
 
-        for position in allGhostPositions:
-            likelihood = self.getObservationProb(observation, pacPos, position, jailPos)
-            prior = beliefs[position]
-            beliefs[position] = likelihood * prior
+        new = DiscreteDistribution()
+        for particle in self.particles:
+            likelihood = self.getObservationProb(observation, pacPos, particle, jailPos)
+            new[particle] += likelihood
+        new.normalize()
 
-        if beliefs.total() == 0:
+        if new.total() == 0:
             self.initializeUniformly(gameState)
-            beliefs = self.getBeliefDistribution()
+            new = self.getBeliefDistribution()
             particles = self.particles
 
         self.particles = []
         for i in range(self.numParticles):
-            self.particles.append(beliefs.sample())
+            self.particles.append(new.sample())
 
 
     def predict(self, gameState):
