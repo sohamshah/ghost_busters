@@ -436,14 +436,12 @@ class JointParticleFilter(ParticleFilter):
         should be evenly distributed across positions in order to ensure a
         uniform prior.
         """
-        particlesPerPosition = self.numParticles / len(self.legalPositions)
+        positions = itertools.product(self.legalPositions, repeat=self.numGhosts)
+        positions = list(positions)
+        random.shuffle(positions)
         self.particles = []
-        for pos in self.legalPositions:
-            particle = []
-            for i in range(particlesPerPosition):
-                for i in range(self.numGhosts):
-                    particle.append(pos)
-                self.particles.append(tuple(particle))
+        while len(self.particles) < self.numParticles:
+            self.particles += positions
 
     def addGhostAgent(self, agent):
         """
@@ -470,7 +468,35 @@ class JointParticleFilter(ParticleFilter):
         The observation is the estimated Manhattan distances to all ghosts you
         are tracking.
         """
-        "*** YOUR CODE HERE ***"
+        pacPos = gameState.getPacmanPosition()
+        particles = self.particles
+        allGhostPositions = self.legalPositions
+
+        new = DiscreteDistribution()
+        for particle in self.particles:
+            likelihood = 1.0
+            for i in range(self.numGhosts):
+                ghostDist = observation[i]
+                jailPos = self.getJailPosition(i)
+                if ghostDist is not None:
+                    likelihood *= self.getObservationProb(ghostDist, pacPos, particle[i], jailPos)
+                else:
+                    particle = list(particle)
+                    particle[i] = jailPos
+                    particle = tuple(particle)
+                    likelihood = 0
+            new[particle] += likelihood
+        new.normalize()
+
+        if new.total() == 0:
+            self.initializeUniformly(gameState)
+            new = self.getBeliefDistribution()
+            particles = self.particles
+
+        self.particles = []
+        for i in range(self.numParticles):
+            self.particles.append(new.sample())
+
 
     def predict(self, gameState):
         """
